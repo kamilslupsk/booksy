@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { MapPin, Phone, Star } from "lucide-react";
+import { MapPin, Phone, Star, User, LogIn } from "lucide-react";
 import { VacationBanner } from "@/components/booking/VacationBanner";
 import { BookingWizard } from "@/components/booking/BookingWizard";
 
@@ -39,6 +40,22 @@ export default async function ProviderPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-white pb-24">
+      {/* Top bar */}
+      <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between">
+          <Link href="/" className="text-sm font-semibold tracking-tighter text-indigo-600">REZERWUJ</Link>
+          {session?.user ? (
+            <Link href="/klient" className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+              <User className="w-4 h-4" /> Mój panel
+            </Link>
+          ) : (
+            <Link href="/login" className="flex items-center gap-1.5 text-sm text-slate-600 hover:text-indigo-600 transition-colors">
+              <LogIn className="w-4 h-4" /> Zaloguj się
+            </Link>
+          )}
+        </div>
+      </div>
+
       {/* Cover */}
       <div className="relative w-full h-48 md:h-64 bg-gray-200 overflow-hidden">
         <Image src={coverImage} alt={provider.displayName} fill className="object-cover" sizes="100vw" priority />

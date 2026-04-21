@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { CheckCircle, Calendar, Clock, Scissors } from "lucide-react";
+import { CheckCircle, Calendar, Clock, Scissors, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/auth";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -10,6 +11,8 @@ interface Props {
 export default async function ConfirmPage({ params, searchParams }: Props) {
   const { slug } = await params;
   const { token, service, date, time } = await searchParams;
+  const session = await auth();
+  const isLoggedIn = !!session?.user;
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
@@ -49,9 +52,16 @@ export default async function ConfirmPage({ params, searchParams }: Props) {
         )}
 
         <div className="space-y-3">
+          {isLoggedIn && (
+            <Link href="/klient/bookings">
+              <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
+                <User className="w-4 h-4 mr-2" /> Przejdź do moich wizyt
+              </Button>
+            </Link>
+          )}
           <Link href={`/${slug}`}>
             <Button variant="outline" className="w-full">
-              Wróć do profilu
+              Wróć do profilu usługodawcy
             </Button>
           </Link>
 
