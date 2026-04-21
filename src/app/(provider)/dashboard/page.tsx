@@ -40,7 +40,8 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const weekRevenue = weekBookings.reduce((sum, b) => sum + Number(b.service.pricePln), 0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const weekRevenue = (weekBookings as any[]).reduce((sum: number, b) => sum + Number(b.service.pricePln), 0) as number;
 
   return (
     <div className="p-6 md:p-10 max-w-5xl">

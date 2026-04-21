@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
+      "Read(//Users/kamil/Claude/Code/**)",
+      "Bash(npx create-next-app@latest booksy-app --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
+      "Bash(cp -r booksy-app/. Booksy/)",
+      "Bash(rm -rf booksy-app)",
+      "Bash(npm install *)",
+      "Bash(npx prisma *)",
+      "Bash(npx shadcn@latest init --yes --defaults)",
+      "Bash(npx shadcn@latest add input card badge select calendar switch dialog label separator toast)",
+      "Bash(npx shadcn@latest add sonner table tabs avatar dropdown-menu)",
+      "Bash(git init *)",
+      "Bash(git remote *)",
+      "Bash(git branch *)",
+      "Bash(npm run *)",
+      "Bash(node -e \"require\\('/Users/kamil/Claude/Code/Booksy/node_modules/next/dist/server/require-hook'\\)\")",
+      "Bash(npm ci *)",
+      "Bash(npx shadcn@latest add input label card badge calendar select switch dialog separator)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)",
+      "Bash(git push *)",
+      "Bash(gh auth *)",
+      "Bash(brew --version)",
+      "Bash(openssl rand *)",
+      "Bash(npx vercel *)",
+      "Read(//Users/kamil/.local/share/com.vercel.cli/**)",
+      "Read(//Users/kamil/.config/vercel/**)",
+      "Read(//Users/kamil/**)",
+      "Bash(sed -i '' 's/import { Chrome } from \"lucide-react\";//g' /Users/kamil/Claude/Code/Booksy/src/app/\\\\\\(auth\\\\\\)/login/page.tsx /Users/kamil/Claude/Code/Booksy/src/app/\\\\\\(auth\\\\\\)/register/page.tsx)",
+      "Bash(sed -i '' 's/<Chrome className=\"w-4 h-4 mr-2\" \\\\/>/<svg className=\"w-4 h-4 mr-2\" viewBox=\"0 0 24 24\"><path fill=\"currentColor\" d=\"M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z\"\\\\/><\\\\/svg>/g')",
+      "Bash(node -e \"const p = require\\('@prisma/client'\\); console.log\\(Object.keys\\(p\\).slice\\(0, 10\\)\\)\")",
+      "Bash(git commit -m 'fix: build errors — Google icon, Prisma 7 pg adapter, TS types *)"
+    ]
+  }
+}
