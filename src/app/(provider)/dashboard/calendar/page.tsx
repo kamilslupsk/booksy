@@ -17,6 +17,11 @@ export default async function CalendarPage({ searchParams }: Props) {
   const weekStart = startOfWeek(baseDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(baseDate, { weekStartsOn: 1 });
 
+  const services = await prisma.service.findMany({
+    where: { providerId: session.user.providerId, isActive: true },
+    select: { id: true, name: true, durationMin: true, pricePln: true },
+  });
+
   const bookings = await prisma.booking.findMany({
     where: {
       providerId: session.user.providerId,
@@ -38,5 +43,7 @@ export default async function CalendarPage({ searchParams }: Props) {
     pricePln: Number(b.service.pricePln),
   }));
 
-  return <WeekCalendar bookings={serialized} weekStart={weekStart.toISOString()} />;
+  const serializedServices = services.map((s) => ({ ...s, pricePln: String(s.pricePln) }));
+
+  return <WeekCalendar bookings={serialized} weekStart={weekStart.toISOString()} services={serializedServices} />;
 }
