@@ -24,7 +24,7 @@ export default function LoginPage() {
       if (result?.error) {
         toast.error("Nieprawidłowy email lub hasło");
       } else {
-        router.push("/dashboard");
+        router.push("/me");
         router.refresh();
       }
     } finally {
@@ -85,7 +85,7 @@ export default function LoginPage() {
           <Button
             variant="outline"
             className="w-full"
-            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            onClick={() => signIn("google", { callbackUrl: "/me" })}
             disabled={loading}
           >
             <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" aria-hidden="true">
