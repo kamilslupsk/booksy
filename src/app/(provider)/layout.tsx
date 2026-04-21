@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import {
   LayoutDashboard, Calendar, Settings, Image as ImageIcon,
-  MessageSquare, Clock, Scissors
+  MessageSquare, Clock, Scissors, LogOut
 } from "lucide-react";
 
 const nav = [
@@ -45,8 +45,13 @@ export default async function ProviderLayout({ children }: { children: React.Rea
           ))}
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-slate-800">
-          <p className="text-xs text-slate-500">{session.user.email ?? session.user.name}</p>
+        <div className="mt-auto pt-6 border-t border-slate-800 space-y-3">
+          <p className="text-xs text-slate-500 truncate">{session.user.email ?? session.user.name}</p>
+          <form action={async () => { "use server"; await signOut({ redirectTo: "/" }); }}>
+            <button type="submit" className="flex items-center gap-2 text-xs text-slate-500 hover:text-white transition-colors w-full px-1">
+              <LogOut className="w-3.5 h-3.5" /> Wyloguj się
+            </button>
+          </form>
         </div>
       </aside>
 
