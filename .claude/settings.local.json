@@ -34,7 +34,8 @@
       "Bash(node -e \"const p = require\\('@prisma/client'\\); console.log\\(Object.keys\\(p\\).slice\\(0, 10\\)\\)\")",
       "Bash(git commit -m 'fix: build errors — Google icon, Prisma 7 pg adapter, TS types *)",
       "Bash(git commit -m 'fix: add prisma generate to build script and postinstall *)",
-      "Bash(git commit -m 'fix: downgrade to Prisma 5, remove adapter-pg and prisma.config.ts *)"
+      "Bash(git commit -m 'fix: downgrade to Prisma 5, remove adapter-pg and prisma.config.ts *)",
+      "Bash(git commit -m 'fix: remove default Next.js page.tsx, use \\(public\\)/page.tsx *)"
     ]
   }
 }
