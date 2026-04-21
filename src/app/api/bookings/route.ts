@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getAvailableSlots } from "@/lib/slots";
 import { sendBookingConfirmationToClient, sendBookingNotificationToProvider } from "@/lib/sms";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 import { auth } from "@/lib/auth";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -74,6 +75,18 @@ export async function POST(req: NextRequest) {
       date: dateFormatted,
       time: timeFormatted,
       service: service.name,
+    }).catch(console.error);
+  }
+
+  if (session?.user?.email) {
+    sendBookingConfirmationEmail(session.user.email, {
+      clientName,
+      providerName: service.provider.displayName,
+      service: service.name,
+      date: dateFormatted,
+      time: timeFormatted,
+      price: String(Number(service.pricePln)),
+      cancelUrl,
     }).catch(console.error);
   }
 

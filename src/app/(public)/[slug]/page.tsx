@@ -112,6 +112,20 @@ export default async function ProviderPage({ params }: Props) {
           <p className="mt-6 text-slate-600 text-sm leading-relaxed max-w-2xl">{provider.bio}</p>
         )}
 
+        {/* Gallery */}
+        {provider.galleryImages.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">Galeria</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {provider.galleryImages.map((url, i) => (
+                <div key={url} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100">
+                  <Image src={url} alt={`${provider.displayName} ${i + 1}`} fill className="object-cover hover:scale-105 transition-transform duration-300" sizes="200px" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Booking wizard */}
         {provider.services.length === 0 ? (
           <div className="mt-10 text-center py-16 text-slate-400">
