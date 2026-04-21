@@ -6,7 +6,7 @@ import type { Service, VacationBlock, AvailabilityRule } from "@prisma/client";
 import { useBookingWizard } from "@/hooks/useBookingWizard";
 import { ServiceSelector } from "./ServiceSelector";
 import { DateTimePicker } from "./DateTimePicker";
-import { ContactForm } from "./ContactForm";
+import { AuthGate } from "./AuthGate";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -22,21 +22,18 @@ interface Props {
   clientName?: string;
 }
 
-const STEP_LABELS = ["Usługa", "Termin", "Kontakt"];
+const STEP_LABELS = ["Usługa", "Termin", "Konto"];
 
 export function BookingWizard({
   providerId, providerSlug, services, vacationBlocks, availabilityRules, isLoggedIn, clientName,
 }: Props) {
   const router = useRouter();
-  const { state, setService, setDate, setSlot, setGuestName, setGuestPhone, next, prev, canNext } = useBookingWizard();
+  const { state, setService, setDate, setSlot, next, prev, canNext } = useBookingWizard();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleConfirm() {
     if (!state.selectedService || !state.selectedDate || !state.selectedSlot) return;
-    if (!isLoggedIn && (!state.guestName.trim() || state.guestPhone.replace(/\D/g, "").length < 9)) {
-      toast.error("Podaj imię i numer telefonu");
-      return;
-    }
+    if (!isLoggedIn) { toast.error("Zaloguj się aby potwierdzić rezerwację"); return; }
 
     setSubmitting(true);
     try {
@@ -48,8 +45,7 @@ export function BookingWizard({
           providerId,
           date: format(state.selectedDate, "yyyy-MM-dd"),
           time: state.selectedSlot,
-          guestName: isLoggedIn ? clientName : state.guestName,
-          guestPhone: isLoggedIn ? undefined : state.guestPhone,
+          guestName: clientName,
         }),
       });
 
@@ -60,7 +56,9 @@ export function BookingWizard({
       }
 
       const { cancelToken } = await res.json();
-      router.push(`/${providerSlug}/confirm?token=${cancelToken}&service=${encodeURIComponent(state.selectedService.name)}&date=${format(state.selectedDate, "d MMMM yyyy", { locale: pl })}&time=${state.selectedSlot}`);
+      router.push(
+        `/${providerSlug}/confirm?token=${cancelToken}&service=${encodeURIComponent(state.selectedService.name)}&date=${format(state.selectedDate, "d MMMM yyyy", { locale: pl })}&time=${state.selectedSlot}`
+      );
     } catch {
       toast.error("Błąd połączenia. Spróbuj ponownie.");
     } finally {
@@ -68,9 +66,11 @@ export function BookingWizard({
     }
   }
 
+  const showConfirmButton = state.step === 3 && isLoggedIn;
+
   return (
     <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      {/* Left: service selector */}
+      {/* Left */}
       <div className="lg:col-span-7">
         {/* Step indicator */}
         <div className="flex items-center gap-2 mb-6">
@@ -92,6 +92,7 @@ export function BookingWizard({
           })}
         </div>
 
+        {/* Step 1 */}
         {state.step === 1 && (
           <div>
             <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
@@ -102,6 +103,7 @@ export function BookingWizard({
           </div>
         )}
 
+        {/* Step 2 — mobile only */}
         {state.step === 2 && state.selectedService && (
           <div className="lg:hidden">
             <DateTimePicker
@@ -118,16 +120,17 @@ export function BookingWizard({
           </div>
         )}
 
+        {/* Step 3 */}
         {state.step === 3 && (
           <div>
             <h2 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
               <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs flex items-center justify-center">3</span>
-              Twoje dane
+              {isLoggedIn ? "Potwierdź rezerwację" : "Zaloguj się aby zarezerwować"}
             </h2>
 
             {/* Summary */}
             {state.selectedService && state.selectedDate && state.selectedSlot && (
-              <div className="bg-indigo-50 rounded-xl p-4 mb-6 border border-indigo-100">
+              <div className="bg-indigo-50 rounded-xl p-4 mb-5 border border-indigo-100">
                 <p className="text-sm font-medium text-indigo-900">{state.selectedService.name}</p>
                 <p className="text-sm text-indigo-700 mt-1">
                   {format(state.selectedDate, "d MMMM yyyy", { locale: pl })} · {state.selectedSlot}
@@ -140,15 +143,10 @@ export function BookingWizard({
 
             {isLoggedIn ? (
               <p className="text-sm text-slate-500 bg-gray-50 rounded-xl p-4 border border-gray-100">
-                Rezerwujesz jako <strong>{clientName}</strong>. Potwierdzenie wyślemy SMS-em.
+                Rezerwujesz jako <strong>{clientName}</strong>.
               </p>
             ) : (
-              <ContactForm
-                name={state.guestName}
-                phone={state.guestPhone}
-                onNameChange={setGuestName}
-                onPhoneChange={setGuestPhone}
-              />
+              <AuthGate />
             )}
           </div>
         )}
@@ -156,32 +154,25 @@ export function BookingWizard({
         {/* Navigation */}
         <div className="flex gap-3 mt-6">
           {state.step > 1 && (
-            <Button variant="outline" onClick={prev} className="flex-1">
-              ← Wstecz
-            </Button>
+            <Button variant="outline" onClick={prev} className="flex-1">← Wstecz</Button>
           )}
           {state.step < 3 ? (
-            <Button
-              onClick={next}
-              disabled={!canNext}
-              className="flex-1 bg-indigo-600 hover:bg-indigo-700"
-            >
+            <Button onClick={next} disabled={!canNext} className="flex-1 bg-indigo-600 hover:bg-indigo-700">
               Dalej →
             </Button>
-          ) : (
-            <Button
-              onClick={handleConfirm}
-              disabled={submitting}
-              className="flex-1 bg-slate-900 hover:bg-slate-800"
-            >
+          ) : showConfirmButton ? (
+            <Button onClick={handleConfirm} disabled={submitting} className="flex-1 bg-slate-900 hover:bg-slate-800">
               {submitting ? "Rezerwowanie..." : "Potwierdź rezerwację"}
             </Button>
-          )}
+          ) : null}
         </div>
-        <p className="text-xs text-center text-slate-400 mt-3">Nie pobieramy opłaty przy rezerwacji.</p>
+
+        {state.step < 3 && (
+          <p className="text-xs text-center text-slate-400 mt-3">Nie pobieramy opłaty przy rezerwacji.</p>
+        )}
       </div>
 
-      {/* Right: calendar — always visible on desktop */}
+      {/* Right: calendar — desktop always visible */}
       {state.selectedService && (
         <div className="lg:col-span-5 hidden lg:block sticky top-24">
           <DateTimePicker
