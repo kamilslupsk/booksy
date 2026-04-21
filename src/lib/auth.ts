@@ -2,9 +2,9 @@ import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 import { authConfig } from "../../auth.config";
-import { verifyOtp, normalizePhone } from "./sms";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
@@ -16,33 +16,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
     }),
     Credentials({
-      id: "phone-otp",
-      name: "Phone OTP",
+      id: "email-password",
+      name: "Email",
       credentials: {
-        phone: { label: "Telefon", type: "text" },
-        code: { label: "Kod OTP", type: "text" },
+        email: { label: "Email", type: "email" },
+        password: { label: "Hasło", type: "password" },
       },
       async authorize(credentials) {
-        const phone = credentials?.phone as string;
-        const code = credentials?.code as string;
-        if (!phone || !code) return null;
+        const email = credentials?.email as string;
+        const password = credentials?.password as string;
+        if (!email || !password) return null;
 
-        const e164 = normalizePhone(phone);
-        const valid = await verifyOtp(e164, code);
-        if (!valid) return null;
-
-        const user = await prisma.user.upsert({
-          where: { phone: e164 },
-          update: {},
-          create: { phone: e164, role: "CLIENT" },
+        const user = await prisma.user.findUnique({
+          where: { email },
           include: { provider: { select: { id: true, slug: true } } },
         });
 
+        if (!user?.password) return null;
+        const valid = await bcrypt.compare(password, user.password);
+        if (!valid) return null;
+
         return {
           id: user.id,
-          phone: user.phone,
-          name: user.name,
           email: user.email,
+          name: user.name,
           image: user.image,
           role: user.role,
           providerId: user.provider?.id,
