@@ -15,12 +15,17 @@ export default async function DashboardPage() {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay() + (today.getDay() === 0 ? -6 : 1));
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+
   const [todayBookings, weekBookings, totalBookings] = await Promise.all([
     prisma.booking.findMany({
       where: {
         providerId: session.user.providerId,
         startTime: { gte: today, lt: tomorrow },
-        status: { in: ["PENDING", "CONFIRMED"] },
+        status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] },
       },
       include: { service: true },
       orderBy: { startTime: "asc" },
@@ -28,7 +33,7 @@ export default async function DashboardPage() {
     prisma.booking.findMany({
       where: {
         providerId: session.user.providerId,
-        startTime: { gte: today },
+        startTime: { gte: weekStart, lt: weekEnd },
         status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] },
       },
       include: { service: true },
@@ -36,7 +41,7 @@ export default async function DashboardPage() {
     prisma.booking.count({
       where: {
         providerId: session.user.providerId,
-        status: "COMPLETED",
+        status: { in: ["PENDING", "CONFIRMED", "COMPLETED"] },
       },
     }),
   ]);

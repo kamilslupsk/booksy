@@ -150,39 +150,10 @@ export default function SettingsPage() {
           </div>
         </section>
 
-        {/* Vacation blocks */}
-        <section className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-slate-900">Urlopy / przerwy</h2>
-            <button onClick={addVacation} className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
-              <Plus className="w-3.5 h-3.5" /> Dodaj
-            </button>
-          </div>
-          {form.vacationBlocks.length === 0 ? (
-            <p className="text-sm text-slate-400">Brak zaplanowanych przerw.</p>
-          ) : (
-            <div className="space-y-3">
-              {form.vacationBlocks.map((v, i) => (
-                <div key={i} className="grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-end">
-                  <div>
-                    <Label className="text-xs">Od</Label>
-                    <Input type="date" value={v.startDate} onChange={(e) => updateVacation(i, "startDate", e.target.value)} className="mt-1 text-sm" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Do</Label>
-                    <Input type="date" value={v.endDate} onChange={(e) => updateVacation(i, "endDate", e.target.value)} className="mt-1 text-sm" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Powód (opcjonalnie)</Label>
-                    <Input value={v.reason} onChange={(e) => updateVacation(i, "reason", e.target.value)} className="mt-1 text-sm" placeholder="np. Urlop" />
-                  </div>
-                  <button onClick={() => removeVacation(i)} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg mb-0.5">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* Vacation moved to calendar */}
+        <section className="bg-orange-50 border border-orange-100 rounded-2xl p-4 text-sm text-orange-700 flex items-center gap-3">
+          <span>Urlopy i przerwy zarządzasz teraz bezpośrednio w</span>
+          <a href="/dashboard/calendar" className="font-semibold underline underline-offset-2 hover:text-orange-900">Kalendarzu →</a>
         </section>
 
         <Button onClick={handleSave} disabled={saving} className="bg-slate-900 hover:bg-slate-800 w-full md:w-auto">

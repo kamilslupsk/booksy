@@ -27,6 +27,7 @@ export const authConfig: NextAuthConfig = {
     },
     session({ session, token }) {
       if (session.user) {
+        session.user.id = token.sub!;
         session.user.role = token.role as string;
         session.user.providerId = token.providerId as string | undefined;
         session.user.providerSlug = token.providerSlug as string | undefined;
