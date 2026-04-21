@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Calendar, Clock, TrendingUp, Users } from "lucide-react";
+import { BookingStatusActions } from "@/components/provider/BookingStatusActions";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -74,15 +75,9 @@ export default async function DashboardPage() {
                 <p className="font-medium text-slate-900 truncate">{booking.service.name}</p>
                 <p className="text-sm text-slate-500">{booking.guestName ?? "Klient"}</p>
               </div>
-              <div className="text-right shrink-0">
+              <div className="flex flex-col items-end gap-2 shrink-0">
                 <p className="font-semibold text-slate-900">{Number(booking.service.pricePln)} zł</p>
-                <span className={`text-xs px-2 py-0.5 rounded-full ${
-                  booking.status === "CONFIRMED"
-                    ? "bg-green-50 text-green-700"
-                    : "bg-yellow-50 text-yellow-700"
-                }`}>
-                  {booking.status === "CONFIRMED" ? "Potwierdzone" : "Oczekuje"}
-                </span>
+                <BookingStatusActions bookingId={booking.id} currentStatus={booking.status} />
               </div>
             </div>
           ))}
