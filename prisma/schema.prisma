@@ -211,6 +211,52 @@ model Subscription {
   provider Provider @relation(fields: [providerId], references: [id])
 }
 
+model SiteSetting {
+  id                     String   @id @default("singleton")
+  siteName               String   @default("Rezerwuj")
+  siteUrl                String   @default("https://rezerwuj.pl")
+  defaultTitle           String   @default("Rezerwuj — umów wizytę online")
+  titleTemplate          String   @default("%s | Rezerwuj")
+  defaultDescription     String   @db.Text
+  defaultKeywords        String   @default("rezerwacja online, fryzjer, manicure, barber, wizyta online")
+  ogImage                String?
+  twitterHandle          String?
+  locale                 String   @default("pl_PL")
+  orgName                String   @default("Rezerwuj")
+  orgLegalName           String?
+  orgLogo                String?
+  orgStreet              String?
+  orgCity                String?
+  orgPostalCode          String?
+  orgCountry             String   @default("PL")
+  orgPhone               String?
+  orgEmail               String?
+  googleAnalyticsId      String?
+  googleSiteVerification String?
+  bingSiteVerification   String?
+  robotsTxt              String?  @db.Text
+  llmsTxt                String?  @db.Text
+  allowIndexing          Boolean  @default(true)
+  allowAiCrawlers        Boolean  @default(true)
+  updatedAt              DateTime @updatedAt
+}
+
+// Per-route-type SEO templates. `key` identifies which page type
+// (home, search, provider, provider_confirm, client_panel, login, register).
+// title/description support tokens: {displayName}, {city}, {category}, {service}, {q}, {siteName}.
+model SeoTemplate {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  label       String
+  title       String
+  description String   @db.Text
+  keywords    String?
+  ogImage     String?
+  noindex     Boolean  @default(false)
+  jsonLd      String?  @db.Text
+  updatedAt   DateTime @updatedAt
+}
+
 model ReferralLink {
   id         String   @id @default(cuid())
   providerId String   @unique

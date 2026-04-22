@@ -1,5 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { auth } from "@/lib/auth";
+import { buildMetadata } from "@/lib/seo";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return buildMetadata("home", {}, { alternates: { canonical: "/" } });
+}
 import { HeroSlider } from "@/components/homepage/HeroSlider";
 import { CategoryBar } from "@/components/homepage/CategoryBar";
 import { FeaturedGrid } from "@/components/homepage/FeaturedGrid";

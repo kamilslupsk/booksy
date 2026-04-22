@@ -1,8 +1,23 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Star } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { SearchHeader } from "./SearchHeader";
+import { buildMetadata } from "@/lib/seo";
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { q, kategoria, miasto } = await searchParams;
+  return buildMetadata(
+    "search",
+    {
+      q: q || kategoria || "usługi",
+      city: miasto || "Polska",
+      category: kategoria || "",
+    },
+    { alternates: { canonical: "/szukaj" } }
+  );
+}
 
 const PLACEHOLDER_IMAGES = [
   "https://images.unsplash.com/photo-1604654894610-df63bc536371?auto=format&fit=crop&q=80&w=800",

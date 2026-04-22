@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
@@ -6,9 +7,33 @@ import { auth } from "@/lib/auth";
 import { MapPin, Phone, Star, User, LogIn } from "lucide-react";
 import { VacationBanner } from "@/components/booking/VacationBanner";
 import { BookingWizard } from "@/components/booking/BookingWizard";
+import { buildMetadata, getSiteSettings, localBusinessJsonLd } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const provider = await prisma.provider.findUnique({
+    where: { slug },
+    select: { displayName: true, bio: true, city: true, category: true, coverImage: true, isActive: true },
+  });
+  if (!provider) return { title: "Nie znaleziono", robots: { index: false, follow: false } };
+  return buildMetadata(
+    "provider",
+    {
+      displayName: provider.displayName,
+      city: provider.city ?? "",
+      category: provider.category ?? "usługi",
+    },
+    {
+      alternates: { canonical: `/${slug}` },
+      openGraph: provider.coverImage ? { images: [provider.coverImage] } : undefined,
+      robots: provider.isActive ? undefined : { index: false, follow: false },
+    }
+  );
 }
 
 export default async function ProviderPage({ params }: Props) {
@@ -30,6 +55,23 @@ export default async function ProviderPage({ params }: Props) {
 
   if (!provider) notFound();
 
+  const siteSettings = await getSiteSettings();
+  const businessLd = localBusinessJsonLd(
+    {
+      displayName: provider.displayName,
+      slug: provider.slug,
+      bio: provider.bio,
+      address: provider.address,
+      city: provider.city,
+      phone: provider.phone,
+      coverImage: provider.coverImage,
+      category: provider.category,
+      galleryImages: provider.galleryImages,
+      reviews: provider.reviews,
+    },
+    siteSettings.siteUrl
+  );
+
   const avgRating = provider.reviews.length
     ? (provider.reviews.reduce((s, r) => s + r.rating, 0) / provider.reviews.length).toFixed(1)
     : null;
@@ -40,6 +82,7 @@ export default async function ProviderPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-white pb-24">
+      <JsonLd data={businessLd} />
       {/* Top bar */}
       <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-12 flex items-center justify-between">
