@@ -1,8 +1,27 @@
 import type { NextAuthConfig } from "next-auth";
 
+const useSecureCookies = process.env.NODE_ENV === "production";
+const cookiePrefix = useSecureCookies ? "__Secure-" : "";
+
 export const authConfig: NextAuthConfig = {
   pages: {
     signIn: "/login",
+  },
+  // Hard-set cookies so an attacker on a misconfigured proxy can't
+  // strip the Secure flag. __Secure- / __Host- prefixes enforce HTTPS.
+  cookies: {
+    sessionToken: {
+      name: `${cookiePrefix}authjs.session-token`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies },
+    },
+    callbackUrl: {
+      name: `${cookiePrefix}authjs.callback-url`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies },
+    },
+    csrfToken: {
+      name: `${useSecureCookies ? "__Host-" : ""}authjs.csrf-token`,
+      options: { httpOnly: true, sameSite: "lax", path: "/", secure: useSecureCookies },
+    },
   },
   callbacks: {
     authorized({ auth, request }) {

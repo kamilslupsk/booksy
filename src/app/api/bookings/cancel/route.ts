@@ -4,13 +4,19 @@ import { auth } from "@/lib/auth";
 import { sendCancellationEmail } from "@/lib/email";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
+import { BookingCancelSchema, parseJson } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { token } = await req.json();
-  if (!token) return NextResponse.json({ error: "Brak tokenu" }, { status: 400 });
+  const limited = enforceRateLimit(req, { name: "cancel", limit: 10, windowSec: 600 }, session.user.id);
+  if (limited) return limited;
+
+  const parsed = await parseJson(req, BookingCancelSchema);
+  if ("error" in parsed) return parsed.error;
+  const { token } = parsed.data;
 
   const booking = await prisma.booking.findUnique({
     where: { cancelToken: token },

@@ -6,19 +6,32 @@ import { sendBookingConfirmationEmail } from "@/lib/email";
 import { auth } from "@/lib/auth";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
+import { BookingCreateSchema, parseJson, jsonError } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   const session = await auth();
-  const body = await req.json();
-  const { serviceId, providerId, date, time, guestName, guestPhone } = body;
 
-  if (!serviceId || !providerId || !date || !time) {
-    return NextResponse.json({ error: "Brakujące dane" }, { status: 400 });
+  // 10 bookings / 10 min — per user if logged in, else per IP.
+  const limited = enforceRateLimit(
+    req,
+    { name: "booking", limit: 10, windowSec: 600 },
+    session?.user?.id
+  );
+  if (limited) return limited;
+
+  const parsed = await parseJson(req, BookingCreateSchema);
+  if ("error" in parsed) return parsed.error;
+  const { serviceId, providerId, date, time, guestName, guestPhone, website } = parsed.data;
+
+  // Honeypot — silently accept bot submissions without creating records.
+  if (website && website.length > 0) {
+    return NextResponse.json({ bookingId: "ok", cancelToken: "ok" });
   }
 
   const isGuest = !session?.user;
   if (isGuest && (!guestName || !guestPhone)) {
-    return NextResponse.json({ error: "Podaj imię i telefon" }, { status: 400 });
+    return jsonError("Podaj imię i telefon", 400);
   }
 
   const service = await prisma.service.findUnique({
@@ -54,7 +67,7 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   const cancelUrl = `${appUrl}/cancel/${booking.cancelToken}`;
-  const clientName = isGuest ? guestName : (session?.user?.name ?? "Klient");
+  const clientName = (isGuest ? guestName : session?.user?.name) ?? "Klient";
   const clientPhone = isGuest ? guestPhone : null;
   const dateFormatted = format(startTime, "d MMMM yyyy", { locale: pl });
   const timeFormatted = format(startTime, "HH:mm");

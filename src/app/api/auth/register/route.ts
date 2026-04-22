@@ -1,6 +1,17 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/prisma";
+import { parseJson } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
+
+const RegisterSchema = z.object({
+  email: z.string().email().max(120).toLowerCase().trim(),
+  password: z.string().min(8).max(128),
+  displayName: z.string().trim().min(2).max(80),
+  category: z.string().trim().min(2).max(40),
+});
 
 function generateSlug(name: string): string {
   return name
@@ -13,14 +24,12 @@ function generateSlug(name: string): string {
 }
 
 export async function POST(req: Request) {
-  const { email, password, displayName, category } = await req.json();
+  const limited = enforceRateLimit(req, { name: "register", limit: 5, windowSec: 3600 });
+  if (limited) return limited;
 
-  if (!email || !password || !displayName || !category) {
-    return NextResponse.json({ error: "Uzupełnij wszystkie pola" }, { status: 400 });
-  }
-  if (password.length < 8) {
-    return NextResponse.json({ error: "Hasło musi mieć co najmniej 8 znaków" }, { status: 400 });
-  }
+  const parsed = await parseJson(req, RegisterSchema);
+  if ("error" in parsed) return parsed.error;
+  const { email, password, displayName, category } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
@@ -56,7 +65,8 @@ export async function POST(req: Request) {
           },
           referralLink: {
             create: {
-              code: Math.random().toString(36).slice(2, 10),
+              // Cryptographically strong referral code — not predictable from Math.random.
+              code: randomBytes(6).toString("base64url"),
             },
           },
         },

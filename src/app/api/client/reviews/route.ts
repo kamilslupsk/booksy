@@ -1,15 +1,20 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { ReviewCreateSchema, parseJson } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { bookingId, rating, content } = await req.json();
-  if (!bookingId || !rating || rating < 1 || rating > 5) {
-    return NextResponse.json({ error: "Nieprawidłowe dane" }, { status: 400 });
-  }
+  // 20 reviews / hour / user — covers retries but stops spam.
+  const limited = enforceRateLimit(req, { name: "review", limit: 20, windowSec: 3600 }, session.user.id);
+  if (limited) return limited;
+
+  const parsed = await parseJson(req, ReviewCreateSchema);
+  if ("error" in parsed) return parsed.error;
+  const { bookingId, rating, content } = parsed.data;
 
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
